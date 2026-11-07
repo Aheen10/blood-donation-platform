@@ -1,5 +1,5 @@
 export const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"] as const;
-export const ROLES = ["donor", "requester", "admin"] as const;
+export const ROLES = ["member", "admin"] as const;
 export const URGENCY_LEVELS = ["critical", "high", "normal"] as const;
 export const REQUEST_STATUSES = ["open", "matched", "fulfilled", "closed", "flagged"] as const;
 export const NOTIFICATION_TYPES = [
