@@ -22,10 +22,6 @@ export async function POST(req: Request) {
   }
   const data = parsed.data;
 
-  if (data.role === "donor" && !data.donor) {
-    return NextResponse.json({ error: "Donor details are required" }, { status: 400 });
-  }
-
   await connectDB();
 
   const exists = await User.findOne({ email: data.email.toLowerCase() });
@@ -34,15 +30,17 @@ export async function POST(req: Request) {
   }
 
   const passwordHash = await bcrypt.hash(data.password, 10);
+  // Everyone is a "member": can request blood and can donate. Admins are set manually in the DB.
   const user = await User.create({
     name: data.name,
     email: data.email,
     phone: data.phone,
     passwordHash,
-    role: data.role,
+    role: "member",
   });
 
-  if (data.role === "donor" && data.donor) {
+  // Optional: the person also wants to donate blood
+  if (data.donor) {
     const last = data.donor.lastDonationDate ? new Date(data.donor.lastDonationDate) : null;
     await DonorProfile.create({
       user: user._id,
