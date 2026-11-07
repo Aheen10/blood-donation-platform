@@ -7,7 +7,7 @@ const UserSchema = new Schema(
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     passwordHash: { type: String, required: true, select: false },
     phone: { type: String, trim: true },
-    role: { type: String, enum: ROLES, default: "requester" },
+    role: { type: String, enum: ROLES, default: "member" },
 
     // Set by an admin after approving a fraud report
     isBlocked: { type: Boolean, default: false }, // banned: cannot log in
