@@ -8,27 +8,35 @@ import {
   MAX_MESSAGE_LENGTH,
 } from "@/lib/constants";
 
+// ---------- Donor profile (used at registration AND later from the donor page) ----------
+export const donorProfileSchema = z.object({
+  bloodGroup: z.enum(BLOOD_GROUPS),
+  city: z.string().min(2),
+  area: z.string().optional(),
+  lat: z.number().min(-90).max(90),
+  lng: z.number().min(-180).max(180),
+  lastDonationDate: z.string().datetime().optional().nullable(),
+  consentToContact: z.literal(true, {
+    errorMap: () => ({ message: "Consent is required to register as a donor" }),
+  }),
+});
+
+// Donor switches (pause availability, hide from public leaderboard)
+export const donorProfileUpdateSchema = z.object({
+  isAvailable: z.boolean().optional(),
+  showOnLeaderboard: z.boolean().optional(),
+});
+
+// ---------- Registration ----------
+// One account type for everyone. Anyone can request blood and anyone can donate.
+// Admins are created manually in the DB.
 export const registerSchema = z.object({
   name: z.string().min(2, "Name is too short").max(80),
   email: z.string().email("Invalid email"),
   password: z.string().min(8, "Password must be at least 8 characters").max(100),
   phone: z.string().min(6).max(20).optional(),
-  // Only donor or requester can self-register. Admins are created manually in the DB.
-  role: z.enum(["donor", "requester"]),
-  // Required only when role === "donor"
-  donor: z
-    .object({
-      bloodGroup: z.enum(BLOOD_GROUPS),
-      city: z.string().min(2),
-      area: z.string().optional(),
-      lat: z.number().min(-90).max(90),
-      lng: z.number().min(-180).max(180),
-      lastDonationDate: z.string().datetime().optional().nullable(),
-      consentToContact: z.literal(true, {
-        errorMap: () => ({ message: "Consent is required to register as a donor" }),
-      }),
-    })
-    .optional(),
+  // Present only if the person also wants to donate blood
+  donor: donorProfileSchema.optional(),
 });
 
 export type RegisterInput = z.infer<typeof registerSchema>;
