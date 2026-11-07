@@ -7,7 +7,8 @@ import { BLOOD_GROUPS } from "@/lib/constants";
 
 export default function RegisterPage() {
   const router = useRouter();
-  const [role, setRole] = useState<"donor" | "requester">("donor");
+  // One account for everyone. Tick this box if you also want to donate blood.
+  const [wantsToDonate, setWantsToDonate] = useState(true);
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -46,9 +47,8 @@ export default function RegisterPage() {
       email: form.email,
       password: form.password,
       phone: form.phone || undefined,
-      role,
     };
-    if (role === "donor") {
+    if (wantsToDonate) {
       payload.donor = {
         bloodGroup: form.bloodGroup,
         city: form.city,
@@ -83,27 +83,19 @@ export default function RegisterPage() {
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-4 py-8">
       <h1 className="mb-6 text-2xl font-bold text-brand-600">Register</h1>
       <form onSubmit={handleSubmit} className="space-y-4 rounded-lg bg-white p-6 shadow">
-        <div className="flex gap-2">
-          {(["donor", "requester"] as const).map((r) => (
-            <button
-              type="button"
-              key={r}
-              onClick={() => setRole(r)}
-              className={`flex-1 rounded border py-2 capitalize ${
-                role === r ? "bg-brand-600 text-white" : "bg-white"
-              }`}
-            >
-              {r}
-            </button>
-          ))}
-        </div>
-
         <input required placeholder="Full name" className={input} value={form.name} onChange={(e) => set("name", e.target.value)} />
         <input required type="email" placeholder="Email" className={input} value={form.email} onChange={(e) => set("email", e.target.value)} />
         <input required type="password" minLength={8} placeholder="Password (min 8 chars)" className={input} value={form.password} onChange={(e) => set("password", e.target.value)} />
         <input placeholder="Phone" className={input} value={form.phone} onChange={(e) => set("phone", e.target.value)} />
 
-        {role === "donor" && (
+        <label className="flex items-start gap-2 rounded bg-gray-50 p-3 text-sm">
+          <input type="checkbox" checked={wantsToDonate} onChange={(e) => setWantsToDonate(e.target.checked)} />
+          <span>
+            I also want to donate blood. <span className="text-gray-500">(You can always ask for blood too. You can turn this on or off later.)</span>
+          </span>
+        </label>
+
+        {wantsToDonate && (
           <>
             <select className={input} value={form.bloodGroup} onChange={(e) => set("bloodGroup", e.target.value)}>
               {BLOOD_GROUPS.map((g) => (
@@ -133,7 +125,7 @@ export default function RegisterPage() {
         {error && <p className="text-sm text-red-600">{error}</p>}
         <button
           type="submit"
-          disabled={loading || (role === "donor" && !form.consent)}
+          disabled={loading || (wantsToDonate && !form.consent)}
           className="w-full rounded bg-brand-600 py-2 text-white hover:bg-brand-700 disabled:opacity-50"
         >
           {loading ? "Creating account..." : "Create account"}
