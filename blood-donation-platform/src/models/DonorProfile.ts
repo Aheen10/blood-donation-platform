@@ -20,6 +20,15 @@ const DonorProfileSchema = new Schema(
     showOnLeaderboard: { type: Boolean, default: true },
     totalDonations: { type: Number, default: 0 },
     lastReminderSentAt: { type: Date, default: null },
+
+    // Optional live location (opt-in). Only the latest point is kept, and it is
+    // removed when the donor turns sharing off. Never shown to other users.
+    shareLiveLocation: { type: Boolean, default: false },
+    liveLocation: {
+      lat: { type: Number },
+      lng: { type: Number },
+      updatedAt: { type: Date },
+    },
   },
   { timestamps: true }
 );
