@@ -42,8 +42,17 @@ export default function Navbar() {
 
         {status === "authenticated" ? (
           <>
-            <Link href="/dashboard" className={link}>
+            <Link href="/donor" className={link}>
+              Donate
+            </Link>
+            <Link href="/requester" className={link}>
               My requests
+            </Link>
+            <Link href="/donor/history" className={link}>
+              History
+            </Link>
+            <Link href="/assistant" className={link}>
+              Assistant
             </Link>
             <Link href="/notifications" className={`relative ${link}`}>
               Notifications
