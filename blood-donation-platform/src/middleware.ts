@@ -6,10 +6,8 @@ export default withAuth(
     const role = req.nextauth.token?.role;
     const path = req.nextUrl.pathname;
 
+    // Only admins can open /admin. Every logged-in user can use all other pages.
     if (path.startsWith("/admin") && role !== "admin") {
-      return NextResponse.redirect(new URL("/", req.url));
-    }
-    if (path.startsWith("/donor") && role !== "donor" && role !== "admin") {
       return NextResponse.redirect(new URL("/", req.url));
     }
     return NextResponse.next();
@@ -18,5 +16,5 @@ export default withAuth(
 );
 
 export const config = {
-  matcher: ["/donor/:path*", "/requester/:path*", "/requests/:path*", "/admin/:path*", "/chat/:path*", "/dashboard", "/notifications"],
+  matcher: ["/donor/:path*", "/requester/:path*", "/requests/:path*", "/admin/:path*", "/chat/:path*", "/assistant", "/dashboard", "/notifications"],
 };
