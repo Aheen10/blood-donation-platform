@@ -4,6 +4,7 @@ import { requireUser } from "@/lib/session";
 import { createRequestSchema } from "@/lib/validators";
 import { generateShareCode } from "@/lib/utils";
 import { MAX_REQUESTS_PER_HOUR } from "@/lib/constants";
+import { runMatchingRound } from "@/lib/matching";
 import BloodRequest from "@/models/BloodRequest";
 
 // GET /api/requests            -> open requests (public-safe fields only)
@@ -87,7 +88,13 @@ export async function POST(req: Request) {
     shareCode: generateShareCode(),
   });
 
-  // TODO (Aheen): call the matching engine / escalation agent here to notify the first group of donors.
+  // Matching agent: notify the first group of suitable donors right away.
+  // A failure here must never stop the request from being created.
+  try {
+    await runMatchingRound(String(doc._id));
+  } catch (err) {
+    console.error("Matching round failed", err);
+  }
 
   return NextResponse.json({ id: String(doc._id), shareCode: doc.shareCode }, { status: 201 });
 }
