@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { signOut, useSession } from "next-auth/react";
+import LiveLocationReporter from "@/components/location/LiveLocationReporter";
 
 export default function Navbar() {
   const { data: session, status } = useSession();
@@ -32,6 +33,7 @@ export default function Navbar() {
 
   return (
     <header className="border-b bg-white">
+      {status === "authenticated" && <LiveLocationReporter />}
       <nav className="mx-auto flex max-w-4xl flex-wrap items-center gap-x-5 gap-y-2 px-4 py-3">
         <Link href="/" className="mr-auto font-bold text-brand-600">
           BloodConnect
@@ -59,6 +61,9 @@ export default function Navbar() {
               {unread > 0 && (
                 <span className="ml-1 rounded-full bg-brand-600 px-1.5 py-0.5 text-xs text-white">{unread}</span>
               )}
+            </Link>
+            <Link href="/account" className={link}>
+              My Account
             </Link>
             {session.user.role === "admin" && (
               <Link href="/admin" className={link}>
