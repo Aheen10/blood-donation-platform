@@ -50,6 +50,7 @@ export async function GET() {
       lastDonationDate: p.lastDonationDate ?? null,
       isAvailable: Boolean(p.isAvailable),
       showOnLeaderboard: Boolean(p.showOnLeaderboard),
+      shareLiveLocation: Boolean(p.shareLiveLocation),
     },
   });
 }
@@ -93,7 +94,7 @@ export async function POST(req: Request) {
   return NextResponse.json({ ok: true }, { status: 201 });
 }
 
-// PATCH /api/donor-profile { isAvailable?, showOnLeaderboard? } -> pause or resume donating, hide from leaderboard
+// PATCH /api/donor-profile { isAvailable?, showOnLeaderboard?, shareLiveLocation? }
 export async function PATCH(req: Request) {
   const g = await guard();
   if (!g.ok) return g.response;
@@ -110,11 +111,16 @@ export async function PATCH(req: Request) {
   const update: Record<string, boolean> = {};
   if (parsed.data.isAvailable !== undefined) update.isAvailable = parsed.data.isAvailable;
   if (parsed.data.showOnLeaderboard !== undefined) update.showOnLeaderboard = parsed.data.showOnLeaderboard;
+  if (parsed.data.shareLiveLocation !== undefined) update.shareLiveLocation = parsed.data.shareLiveLocation;
   if (Object.keys(update).length === 0) {
     return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
   }
 
-  const result = await DonorProfile.updateOne({ user: g.userId }, { $set: update });
+  const updateDoc: { $set: Record<string, boolean>; $unset?: Record<string, ""> } = { $set: update };
+  // Turning sharing off deletes the stored live point
+  if (parsed.data.shareLiveLocation === false) updateDoc.$unset = { liveLocation: "" };
+
+  const result = await DonorProfile.updateOne({ user: g.userId }, updateDoc);
   if (result.matchedCount === 0) {
     return NextResponse.json({ error: "You are not registered as a donor yet" }, { status: 404 });
   }
