@@ -13,9 +13,12 @@ interface Profile {
   lastDonationDate: string | null;
   isAvailable: boolean;
   showOnLeaderboard: boolean;
+  shareLiveLocation: boolean;
 }
 
-// Lets any member become a donor, pause donating, or hide their name from the public leaderboard.
+type Switch = "isAvailable" | "showOnLeaderboard" | "shareLiveLocation";
+
+// Lets any member become a donor, pause donating, share live location, or hide their name from the leaderboard.
 export default function DonorProfileForm() {
   const [profile, setProfile] = useState<Profile | null | undefined>(undefined); // undefined = loading
   const [error, setError] = useState("");
@@ -82,7 +85,7 @@ export default function DonorProfileForm() {
     await load();
   }
 
-  async function toggle(key: "isAvailable" | "showOnLeaderboard", value: boolean) {
+  async function toggle(key: Switch, value: boolean) {
     setError("");
     const res = await fetch("/api/donor-profile", {
       method: "PATCH",
@@ -92,9 +95,34 @@ export default function DonorProfileForm() {
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
       setError(data.error || "Could not update");
-      return;
+      return false;
     }
     setProfile((p) => (p ? { ...p, [key]: value } : p));
+    return true;
+  }
+
+  // Live location needs the browser's permission first
+  async function toggleLive(value: boolean) {
+    setError("");
+    if (value) {
+      if (!navigator.geolocation) {
+        setError("Your browser does not support location.");
+        return;
+      }
+      const allowed = await new Promise<boolean>((resolve) =>
+        navigator.geolocation.getCurrentPosition(
+          () => resolve(true),
+          () => resolve(false),
+          { timeout: 15000 }
+        )
+      );
+      if (!allowed) {
+        setError("Location permission was denied. Allow location in your browser settings to turn this on.");
+        return;
+      }
+    }
+    const ok = await toggle("shareLiveLocation", value);
+    if (ok) window.dispatchEvent(new Event("live-location-changed"));
   }
 
   const input = "w-full rounded border px-3 py-2";
@@ -113,6 +141,15 @@ export default function DonorProfileForm() {
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={profile.isAvailable} onChange={(e) => toggle("isAvailable", e.target.checked)} />
           I am available to donate (turn off to pause requests)
+        </label>
+        <label className="flex items-start gap-2 text-sm">
+          <input type="checkbox" checked={profile.shareLiveLocation} onChange={(e) => toggleLive(e.target.checked)} />
+          <span>
+            Share my live location while this app is open, so I get nearby emergency requests first.
+            <span className="block text-xs text-gray-500">
+              Only your latest position is used to measure distance. Nobody can see it. Turn it off any time and it is deleted.
+            </span>
+          </span>
         </label>
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={profile.showOnLeaderboard} onChange={(e) => toggle("showOnLeaderboard", e.target.checked)} />
