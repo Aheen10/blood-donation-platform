@@ -21,10 +21,17 @@ export const donorProfileSchema = z.object({
   }),
 });
 
-// Donor switches (pause availability, hide from public leaderboard)
+// Donor switches (pause availability, hide from public leaderboard, share live location)
 export const donorProfileUpdateSchema = z.object({
   isAvailable: z.boolean().optional(),
   showOnLeaderboard: z.boolean().optional(),
+  shareLiveLocation: z.boolean().optional(),
+});
+
+// A live location ping sent by the browser while the app is open
+export const liveLocationSchema = z.object({
+  lat: z.number().min(-90).max(90),
+  lng: z.number().min(-180).max(180),
 });
 
 // ---------- Registration ----------
