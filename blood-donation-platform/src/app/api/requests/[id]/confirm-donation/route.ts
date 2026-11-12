@@ -6,6 +6,7 @@ import { confirmDonationSchema } from "@/lib/validators";
 import { includesId, sameId } from "@/lib/utils";
 import { notifyInApp } from "@/lib/notifications";
 import { DONATION_GAP_DAYS } from "@/lib/constants";
+import { awardDonationPoints } from "@/lib/points";
 import BloodRequest from "@/models/BloodRequest";
 import DonationHistory from "@/models/DonationHistory";
 import DonorProfile from "@/models/DonorProfile";
@@ -14,7 +15,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 
 // POST /api/requests/:id/confirm-donation  { donorId }
 // Only the requester can confirm that an accepted donor really donated.
-// Confirmed donations feed the monthly dashboard and the yearly ranking.
+// Confirmed donations feed the monthly dashboard, the yearly ranking and reward points.
 export async function POST(req: Request, { params }: { params: { id: string } }) {
   const g = await requireUser();
   if (!g.ok) return g.res;
@@ -62,6 +63,20 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     }
   );
 
+  // Reward points. A failure here must never undo a confirmed donation.
+  let pointsEarned = 0;
+  try {
+    const donationCount = await DonationHistory.countDocuments({ donor: donorId });
+    pointsEarned = await awardDonationPoints({
+      donorId,
+      requestId: String(request._id),
+      urgency: request.urgency,
+      isFirstDonation: donationCount === 1,
+    });
+  } catch (err) {
+    console.error("Awarding points failed", err);
+  }
+
   const confirmedCount = await DonationHistory.countDocuments({ request: request._id });
   const fulfilled = confirmedCount >= request.unitsNeeded;
   if (fulfilled) {
@@ -75,9 +90,11 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     userId: donorId,
     type: "request_fulfilled",
     title: "Thank you for donating",
-    message: `Your donation at ${request.hospitalName} was confirmed. It counts toward this year's ranking.`,
+    message: `Your donation at ${request.hospitalName} was confirmed.${
+      pointsEarned > 0 ? ` You earned ${pointsEarned} reward points.` : ""
+    } It counts toward this year's ranking.`,
     requestId: String(request._id),
   });
 
-  return NextResponse.json({ ok: true, confirmedCount, fulfilled });
+  return NextResponse.json({ ok: true, confirmedCount, fulfilled, pointsEarned });
 }
