@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { signIn } from "next-auth/react";
 import { BLOOD_GROUPS } from "@/lib/constants";
 
 export default function RegisterPage() {
@@ -67,14 +68,32 @@ export default function RegisterPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
-    setLoading(false);
 
     if (!res.ok) {
+      setLoading(false);
       const data = await res.json().catch(() => ({}));
       setError(data.error || "Registration failed");
       return;
     }
-    router.push(`/login${window.location.search}`);
+
+    // Account created: log the user in straight away (no second login step).
+    const login = await signIn("credentials", {
+      email: form.email,
+      password: form.password,
+      redirect: false,
+    });
+    setLoading(false);
+
+    if (!login || login.error) {
+      // Fallback: send to the login page if automatic sign-in did not work
+      router.push(`/login${window.location.search}`);
+      return;
+    }
+
+    const cb = new URLSearchParams(window.location.search).get("callbackUrl");
+    const safe = cb && cb.startsWith("/") && !cb.startsWith("//") ? cb : "/dashboard";
+    router.push(safe);
+    router.refresh();
   }
 
   const input = "w-full rounded border px-3 py-2";
