@@ -19,6 +19,8 @@ const DonorProfileSchema = new Schema(
     // If false, the donor appears as "Anonymous donor" on public leaderboards
     showOnLeaderboard: { type: Boolean, default: true },
     totalDonations: { type: Number, default: 0 },
+    // Reward points earned from confirmed donations (history is in PointLog)
+    points: { type: Number, default: 0 },
     lastReminderSentAt: { type: Date, default: null },
 
     // Optional live location (opt-in). Only the latest point is kept, and it is
