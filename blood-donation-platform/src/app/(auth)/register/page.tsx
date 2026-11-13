@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { BLOOD_GROUPS } from "@/lib/constants";
+import LocationPicker from "@/components/location/LocationPicker";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -28,20 +29,15 @@ export default function RegisterPage() {
 
   const set = (k: string, v: string | boolean) => setForm((f) => ({ ...f, [k]: v }));
 
-  function useMyLocation() {
-    navigator.geolocation?.getCurrentPosition(
-      (pos) => {
-        set("lat", String(pos.coords.latitude));
-        set("lng", String(pos.coords.longitude));
-      },
-      () => setError("Could not get your location. Enter it manually.")
-    );
-  }
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
     setError("");
+
+    if (wantsToDonate && (form.lat === "" || form.lng === "")) {
+      setError("Please pick your location on the map.");
+      return;
+    }
+    setLoading(true);
 
     const payload: Record<string, unknown> = {
       name: form.name,
@@ -85,7 +81,6 @@ export default function RegisterPage() {
     setLoading(false);
 
     if (!login || login.error) {
-      // Fallback: send to the login page if automatic sign-in did not work
       router.push(`/login${window.location.search}`);
       return;
     }
@@ -123,13 +118,19 @@ export default function RegisterPage() {
             </select>
             <input required placeholder="City" className={input} value={form.city} onChange={(e) => set("city", e.target.value)} />
             <input placeholder="Area (optional)" className={input} value={form.area} onChange={(e) => set("area", e.target.value)} />
-            <div className="flex gap-2">
-              <input required placeholder="Latitude" className={input} value={form.lat} onChange={(e) => set("lat", e.target.value)} />
-              <input required placeholder="Longitude" className={input} value={form.lng} onChange={(e) => set("lng", e.target.value)} />
+
+            <div>
+              <p className="mb-1 text-sm font-medium text-gray-700">Your location</p>
+              <LocationPicker
+                lat={form.lat === "" ? null : Number(form.lat)}
+                lng={form.lng === "" ? null : Number(form.lng)}
+                onChange={(la, ln) => {
+                  set("lat", String(la));
+                  set("lng", String(ln));
+                }}
+              />
             </div>
-            <button type="button" onClick={useMyLocation} className="text-sm text-brand-600 underline">
-              Use my current location
-            </button>
+
             <label className="block text-sm text-gray-600">
               Last donation date (leave empty if never)
               <input type="date" className={`${input} mt-1`} value={form.lastDonationDate} onChange={(e) => set("lastDonationDate", e.target.value)} />
