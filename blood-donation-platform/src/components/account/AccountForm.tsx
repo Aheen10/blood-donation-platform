@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import LocationPicker from "@/components/location/LocationPicker";
 
 const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
@@ -48,20 +49,6 @@ export default function AccountForm() {
 
   function setD<K extends keyof Donor>(key: K, value: Donor[K]) {
     setDonor((prev) => (prev ? { ...prev, [key]: value } : prev));
-  }
-
-  function useMyLocation() {
-    if (!navigator.geolocation) {
-      setMsg({ ok: false, text: "Geolocation is not supported in this browser" });
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setD("lat", Number(pos.coords.latitude.toFixed(6)));
-        setD("lng", Number(pos.coords.longitude.toFixed(6)));
-      },
-      () => setMsg({ ok: false, text: "Could not get your location. Please allow location permission." })
-    );
   }
 
   async function save(e: React.FormEvent) {
@@ -194,27 +181,14 @@ export default function AccountForm() {
 
               <div>
                 <label className={label}>Saved location (used when live location is not available)</label>
-                <div className="grid gap-3 sm:grid-cols-3">
-                  <input
-                    type="number"
-                    step="any"
-                    placeholder="Latitude"
-                    className={input}
-                    value={donor.lat ?? ""}
-                    onChange={(e) => setD("lat", e.target.value === "" ? null : Number(e.target.value))}
-                  />
-                  <input
-                    type="number"
-                    step="any"
-                    placeholder="Longitude"
-                    className={input}
-                    value={donor.lng ?? ""}
-                    onChange={(e) => setD("lng", e.target.value === "" ? null : Number(e.target.value))}
-                  />
-                  <button type="button" onClick={useMyLocation} className="rounded border px-3 py-2 text-sm hover:bg-gray-50">
-                    Use my current location
-                  </button>
-                </div>
+                <LocationPicker
+                  lat={donor.lat}
+                  lng={donor.lng}
+                  onChange={(la, ln) => {
+                    setD("lat", la);
+                    setD("lng", ln);
+                  }}
+                />
               </div>
 
               <div className="space-y-2">
