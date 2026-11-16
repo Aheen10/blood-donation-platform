@@ -72,42 +72,62 @@ export default function ChatPanel({
   }
 
   return (
-    <section className="space-y-3 rounded-lg bg-white p-5 shadow">
-      <h2 className="font-semibold">Chat with {peerName}</h2>
+    <section className="card overflow-hidden">
+      <div className="flex items-center gap-3 border-b border-slate-100 px-5 py-3">
+        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-50 text-sm font-semibold text-brand-700">
+          {peerName.charAt(0).toUpperCase()}
+        </span>
+        <div>
+          <h2 className="text-sm font-semibold text-slate-900">Chat with {peerName}</h2>
+          <p className="text-xs text-slate-500">New messages appear automatically</p>
+        </div>
+      </div>
 
-      <div className="h-64 space-y-2 overflow-y-auto rounded border bg-gray-50 p-3">
-        {messages.length === 0 && <p className="text-center text-sm text-gray-400">No messages yet. Say hello.</p>}
+      <div className="h-72 space-y-2 overflow-y-auto bg-slate-50 p-4">
+        {messages.length === 0 && (
+          <p className="pt-24 text-center text-sm text-slate-400">No messages yet. Say hello.</p>
+        )}
         {messages.map((m) => (
           <div key={m.id} className={`flex ${m.mine ? "justify-end" : "justify-start"}`}>
-            <div className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${m.mine ? "bg-brand-600 text-white" : "bg-white shadow"}`}>
+            <div
+              className={`max-w-[80%] rounded-2xl px-3.5 py-2 text-sm ${
+                m.mine
+                  ? "rounded-br-md bg-brand-600 text-white"
+                  : "rounded-bl-md border border-slate-200 bg-white text-slate-800"
+              }`}
+            >
               <p className="whitespace-pre-wrap break-words">{m.text}</p>
-              <p className={`mt-1 text-[10px] ${m.mine ? "text-brand-100" : "text-gray-400"}`}>{formatDateTime(m.createdAt)}</p>
+              <p className={`mt-1 text-[10px] ${m.mine ? "text-brand-100" : "text-slate-400"}`}>
+                {formatDateTime(m.createdAt)}
+              </p>
             </div>
           </div>
         ))}
         <div ref={bottom} />
       </div>
 
-      {canSend ? (
-        <form onSubmit={send} className="flex gap-2">
-          <input
-            value={text}
-            maxLength={MAX_MESSAGE_LENGTH}
-            onChange={(e) => setText(e.target.value)}
-            placeholder="Type a message"
-            className="min-w-0 flex-1 rounded border px-3 py-2 text-sm"
-          />
-          <button disabled={sending || !text.trim()} className="rounded bg-brand-600 px-4 py-2 text-sm text-white hover:bg-brand-700 disabled:opacity-50">
-            Send
-          </button>
-        </form>
-      ) : (
-        <p className="text-sm text-gray-500">Your account is restricted, so you cannot send messages.</p>
-      )}
-      {error && <p className="text-sm text-red-600">{error}</p>}
-      <p className="text-xs text-gray-500">
-        Never send money or share bank details. If a report is filed, an admin can read this chat.
-      </p>
+      <div className="space-y-2 p-4">
+        {canSend ? (
+          <form onSubmit={send} className="flex gap-2">
+            <input
+              value={text}
+              maxLength={MAX_MESSAGE_LENGTH}
+              onChange={(e) => setText(e.target.value)}
+              placeholder="Type a message"
+              className="min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm"
+            />
+            <button disabled={sending || !text.trim()} className="btn-primary disabled:opacity-50">
+              Send
+            </button>
+          </form>
+        ) : (
+          <p className="text-sm text-slate-500">Your account is restricted, so you cannot send messages.</p>
+        )}
+        {error && <p className="text-sm text-red-600">{error}</p>}
+        <p className="text-xs text-slate-500">
+          Never send money or share bank details. If a report is filed, an admin can read this chat.
+        </p>
+      </div>
     </section>
   );
 }
