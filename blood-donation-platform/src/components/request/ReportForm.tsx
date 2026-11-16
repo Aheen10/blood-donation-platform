@@ -41,30 +41,37 @@ export default function ReportForm({
     setDone(true);
   }
 
+  const field = "mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm";
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-lg bg-white p-5 shadow-xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
+      <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl">
         {done ? (
           <div className="space-y-4 text-center">
-            <p className="font-semibold">Report sent</p>
-            <p className="text-sm text-gray-600">
-              An admin will review it. If they approve it, the account will be {requestedAction === "ban" ? "banned" : "restricted"}.
-              You will get a notification with the result.
+            <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+              <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M5 12l5 5 9-10" />
+              </svg>
+            </span>
+            <p className="text-lg font-semibold text-slate-900">Report sent</p>
+            <p className="text-sm text-slate-600">
+              An admin will review it. If they approve it, the account will be{" "}
+              {requestedAction === "ban" ? "banned" : "restricted"}. You will get a notification with the result.
             </p>
-            <button onClick={onClose} className="rounded bg-brand-600 px-4 py-2 text-white">
+            <button onClick={onClose} className="btn-primary px-6">
               Close
             </button>
           </div>
         ) : (
           <form onSubmit={submit} className="space-y-4">
-            <h2 className="text-lg font-bold text-brand-600">Report {reportedName}</h2>
+            <h2 className="text-lg font-bold text-slate-900">Report {reportedName}</h2>
 
-            <label className="block text-sm">
+            <label className="block text-sm font-medium text-slate-700">
               What happened?
               <select
                 value={reason}
                 onChange={(e) => setReason(e.target.value as (typeof REPORT_REASONS)[number])}
-                className="mt-1 w-full rounded border px-3 py-2"
+                className={field}
               >
                 {REPORT_REASONS.map((r) => (
                   <option key={r} value={r}>
@@ -74,7 +81,7 @@ export default function ReportForm({
               </select>
             </label>
 
-            <label className="block text-sm">
+            <label className="block text-sm font-medium text-slate-700">
               Explain in your own words (required)
               <textarea
                 required
@@ -83,12 +90,12 @@ export default function ReportForm({
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Example: They said it was for a patient, took the blood and I later found out they sold it."
-                className="mt-1 w-full rounded border px-3 py-2"
+                className={field}
               />
             </label>
 
-            <fieldset className="space-y-1 text-sm">
-              <legend className="mb-1">What action do you request?</legend>
+            <fieldset className="space-y-2 text-sm text-slate-700">
+              <legend className="mb-1 font-medium">What action do you request?</legend>
               <label className="flex items-center gap-2">
                 <input type="radio" checked={requestedAction === "ban"} onChange={() => setRequestedAction("ban")} />
                 Ban the account
@@ -99,16 +106,16 @@ export default function ReportForm({
               </label>
             </fieldset>
 
-            <p className="text-xs text-gray-500">
+            <p className="rounded-lg bg-amber-50 p-3 text-xs text-amber-800">
               Nothing happens until an admin approves. False reports can lead to action against your own account.
             </p>
-            {error && <p className="text-sm text-red-600">{error}</p>}
+            {error && <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}
 
             <div className="flex justify-end gap-2">
-              <button type="button" onClick={onClose} className="rounded border px-4 py-2 text-sm">
+              <button type="button" onClick={onClose} className="btn-outline">
                 Cancel
               </button>
-              <button disabled={loading} className="rounded bg-brand-600 px-4 py-2 text-sm text-white hover:bg-brand-700 disabled:opacity-50">
+              <button disabled={loading} className="btn-primary disabled:opacity-50">
                 {loading ? "Sending..." : "Send report"}
               </button>
             </div>
